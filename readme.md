@@ -61,3 +61,7 @@ views/layout.jade
 
     section#s1!=s1
     section#s2!=s2
+
+效果如下：
+
+![screenshot 1](https://gist.github.com/raw/c5383ff669fdbdef7e0d/6817128ff3fac863d455032f4bb2b163d9a722b3/screenshot/1.png)
