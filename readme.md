@@ -20,3 +20,44 @@ BigPipe 是 Facebook 开发的优化网页加载速度的技术。网上几乎�
     }
 
 运行 npm install 安装这三个库，consolidate 是用来方便调用 jade 的。
+
+先做个最简单的尝试，两个文件：
+
+app.js:
+
+    var express = require('express')
+      , cons = require('consolidate')
+      , jade = require('jade')
+      , path = require('path')
+
+    var app = express()
+
+    app.engine('jade', cons.jade)
+    app.set('views', path.join(__dirname, 'views'))
+    app.set('view engine', 'jade')
+
+    app.use(function (req, res) {
+      res.render('layout', {
+          s1: "Hello, I'm the first section."
+        , s2: "Hello, I'm the second section."
+      })
+    })
+
+    app.listen(3000)
+
+views/layout.jade
+
+    doctype html
+
+    head
+      title Hello, World!
+      style
+        section {
+          margin: 20px auto;
+          border: 1px dotted gray;
+          width: 80%;
+          height: 150px;
+        }
+
+    section#s1!=s1
+    section#s2!=s2
