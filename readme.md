@@ -186,3 +186,29 @@ views/s2.jade:
 受外部静态文件的影响，我们的页面现在的加载时间为 7 秒左右。
 
 ![7s](https://gist.github.com/raw/c5383ff669fdbdef7e0d/bb38a3a421259f9120d893ac9cc9458947af0f0b/screenshot/6.png)
+
+如果我们一收到 HTTP 请求就把 head 部分返回，然后两个 section 等到异步操作结束后再返回，这是利用了 HTTP 的[分块传输编码](https://zh.wikipedia.org/wiki/%E5%88%86%E5%9D%97%E4%BC%A0%E8%BE%93%E7%BC%96%E7%A0%81)机制。在 node.js 里面只要使用 res.write() 方法就会自动加上 `Transfer-Encoding: chunked` 这个 header 了。这样就能在浏览器加载静态文件的同时，node 服务器这边等待异步调用的结果了，我们先删除 layout.jade 中的这 section 这两行：
+
+    section#s1!=s1
+    section#s2!=s2
+
+因此我们在 res.render() 里也不用给 { s1: …, s2: … } 这个对象，并且因为 res.render() 默认会调用 res.end()，我们需要手动设置 render 完成后的回调函数，在里面用 res.write() 方法。layout.jade 的内容也不必在 writeResult() 这个回调函数里面，我们可以在收到这个请求时就返回，注意我们手动添加了 content-type 这个 header：
+
+app.use(function (req, res) {
+  res.render('layout', function (err, str) {
+    if (err) return res.req.next(err)
+    res.setHeader('content-type', 'text/html; charset=utf-8')
+    res.write(str)
+  })
+  var n = 2
+  getData.d1(function (err, s1data) {
+    res.write('<section id="s1">' + temp.s1(s1data) + '</section>')
+    --n || res.end()
+  })
+  getData.d2(function (err, s2data) {
+    res.write('<section id="s2">' + temp.s2(s2data) + '</section>')
+    --n || res.end()
+  })
+})
+
+现在最终加载速度又回到大概 5 秒左右了。实际运行中浏览器先收到 head 部分代码，就去加载三个静态文件，这需要两秒时间，然后到第三秒，出现 Partial 1 部分，第 5 秒出现 Partial 2 部分，网页加载结束。
