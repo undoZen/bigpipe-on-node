@@ -4,7 +4,7 @@ BigPipe 是 Facebook 开发的优化网页加载速度的技术。网上几乎�
 
 了解了这个核心概念就好办了，得益于 node.js 的异步特性，很容易就可以用 node.js 实现 BigPipe。本文会一步一步详尽地用例子来说明 BigPipe 技术的起因和一个基于 node.js 的简单实现。
 
-我会用 express 来演示，简单起见，我们选用 jade 作为模版引擎，并且我们不使用引擎的子模版（partial）特性，而是子模版渲染完成以后的 HTML 作为父模版的数据。
+我会用 express 来演示，简单起见，我们选用 jade 作为模版引擎，并且我们不使用引擎的子模版（partial）特性，而是以子模版渲染完成以后的 HTML 作为父模版的数据。
 
 先建一个 nodejs-bigpipe 的文件夹，写一个 package.json 文件如下：
 
@@ -65,3 +65,45 @@ views/layout.jade
 效果如下：
 
 ![screenshot 1](https://gist.github.com/raw/c5383ff669fdbdef7e0d/6817128ff3fac863d455032f4bb2b163d9a722b3/screenshot/1.png)
+
+接下来我们把两个 section 模版放到两个不同的模版文件里：
+
+views/s1.jade:
+
+    h1 Partial 1
+    .content!=content
+
+views/s2.jade:
+
+    h1 Partial 2
+    .content!=content
+
+在 layout.jade 的 style 里增加一些样式
+
+    section h1 {
+      font-size: 1.5;
+      padding: 10px 20px;
+      margin: 0;
+      border-bottom: 1px dotted gray;
+    }
+    section div {
+      margin: 10px;
+    }
+
+将 app.js 的 app.use() 部分更改为：
+
+    var temp = {
+        s1: jade.compile(fs.readFileSync(path.join(__dirname, 'views', 's1.jade')))
+      , s2: jade.compile(fs.readFileSync(path.join(__dirname, 'views', 's2.jade')))
+    }
+    app.use(function (req, res) {
+      res.render('layout', {
+          s1: temp.s1({ content: "Hello, I'm the first section." })
+        , s2: temp.s2({ content: "Hello, I'm the second section." })
+      })
+    })
+
+之前我们说“以子模版渲染完成以后的 HTML 作为父模版的数据”，指的就是这样，`temp.s1` 和 `temp.s2` 两个方法会生成 s1.jade 和 s2.jade 两个文件的 HTML 代码，然后把这两段代码作为 layout.jade 里面 s1、s2 两个变量的值。
+
+现在页面看起来是这样子：
+![screenshot 2](https://gist.github.com/raw/c5383ff669fdbdef7e0d/9f386f6c5982240e720885e8b363d99f10c0fd06/screenshot/2.png)
