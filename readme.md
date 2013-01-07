@@ -135,3 +135,28 @@ views/s2.jade:
 这样也可以得到我们想要的结果，但是这样的话，要足足 8 秒才会返回。
 
 ![8s](https://gist.github.com/raw/c5383ff669fdbdef7e0d/f303873e7caecb711a39391c9337095ee2e0c1a7/screenshot/4.png)
+
+其实实现逻辑可以看出 getData.d2 是在 getData.d1 的结果返回后才开始调用，而它们两者并没有这样的依赖关系。我们可以用如 async 之类的处理 JavaScript 异步调用的库来解决这样的问题，不过我们这里就简单手写吧：
+
+    app.use(function (req, res) {
+      var n = 2
+        , result = {}
+      getData.d1(function (err, s1data) {
+        result.s1data = s1data
+        --n || writeResult()
+      })
+      getData.d2(function (err, s2data) {
+        result.s2data = s2data
+        --n || writeResult()
+      })
+      function writeResult() {
+        res.render('layout', {
+            s1: temp.s1(result.s1data)
+          , s2: temp.s2(result.s2data)
+        })
+      }
+    })
+
+这样就只需 5 秒。
+
+![5s](https://gist.github.com/raw/c5383ff669fdbdef7e0d/98d2b87107354f5d2e837b0c618387b5257934e9/screenshot/3.png)
