@@ -17,7 +17,7 @@ var temp = {
 
 var getData = {
     d1: function (fn) {
-        setTimeout(fn, 3000, null, { content: "Hello, I'm the first section." })
+        setTimeout(fn, 8000, null, { content: "Hello, I'm the first section." })
     }
   , d2: function (fn) {
         setTimeout(fn, 5000, null, { content: "Hello, I'm the second section." })
@@ -33,14 +33,15 @@ app.use(function (req, res) {
     if (err) return res.req.next(err)
     res.setHeader('content-type', 'text/html; charset=utf-8')
     res.write(str)
+    res.write('<section id="s1"></section><section id="s2"></section>')
   })
   var n = 2
   getData.d1(function (err, s1data) {
-    res.write('<section id="s1">' + temp.s1(s1data) + '</section>')
+    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"') + '")</script>')
     --n || res.end()
   })
   getData.d2(function (err, s2data) {
-    res.write('<section id="s2">' + temp.s2(s2data) + '</section>')
+    res.write('<script>$("#s2").html("' + temp.s2(s2data).replace(/"/g, '\\"') + '")</script>')
     --n || res.end()
   })
 })

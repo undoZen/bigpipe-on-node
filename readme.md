@@ -211,4 +211,29 @@ app.use(function (req, res) {
   })
 })
 
-现在最终加载速度又回到大概 5 秒左右了。实际运行中浏览器先收到 head 部分代码，就去加载三个静态文件，这需要两秒时间，然后到第三秒，出现 Partial 1 部分，第 5 秒出现 Partial 2 部分，网页加载结束。
+现在最终加载速度又回到大概 5 秒左右了。实际运行中浏览器先收到 head 部分代码，就去加载三个静态文件，这需要两秒时间，然后到第三秒，出现 Partial 1 部分，第 5 秒出现 Partial 2 部分，网页加载结束。就不给截图了，截图效果和前面 5 秒的截图一样。
+
+但是要注意能实现这个效果是因为 getData.d1 比 getData.d2 快，也就是说，先返回网页中的哪个区块取决于背后的接口异步调用结果谁先返回，如果我们把 getData.d1 改成 8 秒返回，那就会先返回 Partial 2 部分，s1 和 s2 的顺序对调，最终网页的结果就和我们的预期不符了。
+
+这个问题最终将我们引导到 BigPipe 上来，*BigPipe 就是能让网页各部分的显示顺序与数据的传输顺序解耦的技术*。
+
+其基本思路就是，首先传输整个网页大体的框架，需要稍后传输的部分用空 div（或其他标签）表示：
+
+    res.render('layout', function (err, str) {
+      if (err) return res.req.next(err)
+      res.setHeader('content-type', 'text/html; charset=utf-8')
+      res.write(str)
+      res.write('<section id="s1"></section><section id="s2"></section>')
+    })
+
+然后将返回的数据用 JavaScript 写入
+
+  getData.d1(function (err, s1data) {
+    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"') + '")</script>')
+    --n || res.end()
+  })
+
+s2 的处理与此类似。这时你会看到，请求网页的第二秒，出现两个空白虚线框，第五秒，出现 Partial 2 部分，第八秒，出现 Partial 1 部分，网页请求完成。
+
+至此，我们就完成了一个最简单的 BigPipe 技术实现的网页。
+
