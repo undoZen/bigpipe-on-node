@@ -28,21 +28,55 @@ var static = express.static(path.join(__dirname, 'static'))
 app.use('/static', function (req, res, next) {
   setTimeout(static, 2000, req, res, next)
 })
-app.use(function (req, res) {
-  res.render('layout', function (err, str) {
+var resProto = require('express/lib/response')
+resProto.pipe = function (selector, html, replace) {
+  this.write('<script>' + '$("' + selector + '").' +
+    (replace === true ? 'replaceWith' : 'html') +
+    '("' + html.replace(/"/g, '\\"').replace(/<\/script>/g, '<\\/script>') +
+    '")</script>')
+}
+function PipeName (res, name) {
+  res.pipeCount = res.pipeCount || 0
+  res.pipeMap = res.pipeMap || {}
+  if (res.pipeMap[name]) return
+  res.pipeCount++
+  res.pipeMap[name] = this.id = ['pipe', Math.random().toString().substring(2), (new Date()).valueOf()].join('_')
+  this.res = res
+  this.name = name
+}
+resProto.pipeName = function (name) {
+  return new PipeName(this, name)
+}
+resProto.pipeLayout = function (view, options) {
+  var res = this
+  Object.keys(options).forEach(function (key) {
+    if (options[key] instanceof PipeName) options[key] = '<span id="' + options[key].id + '"></span>'
+  })
+  res.render(view, options, function (err, str) {
     if (err) return res.req.next(err)
     res.setHeader('content-type', 'text/html; charset=utf-8')
     res.write(str)
-    res.write('<section id="s1"></section><section id="s2"></section>')
+    if (!res.pipeCount) res.end()
   })
-  var n = 2
+}
+resProto.pipePartial = function (name, view, options) {
+  var res = this
+  res.render(view, options, function (err, str) {
+    if (err) return res.req.next(err)
+    res.pipe('#'+res.pipeMap[name], str, true)
+    --res.pipeCount || res.end()
+  })
+}
+app.use(function (req, res) {
+  res.pipeLayout('layout', {
+      s1: res.pipeName('s1name')
+    , s2: res.pipeName('s2name')
+  })
   getData.d1(function (err, s1data) {
-    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"').replace(/<\/script>/g, '<\\/script>') + '")</script>')
-    --n || res.end()
+    res.pipePartial('s1name', 's1', s1data)
   })
   getData.d2(function (err, s2data) {
-    res.write('<script>$("#s2").html("' + temp.s2(s2data).replace(/"/g, '\\"') + '")</script>')
-    --n || res.end()
+    res.pipePartial('s2name', 's2', s2data)
   })
 })
 

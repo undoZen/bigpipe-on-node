@@ -248,3 +248,63 @@ s2 的处理与此类似。这时你会看到，请求网页的第二秒，出�
 
     res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"').replace(/<\/script>/g, '<\\/script>') + '")</script>')
 
+以上我们便说明了 BigPipe 的原理和用 node.js 实现 BigPipe 的基本方法。而在实际中应该怎样运用呢？下面提供一个简单的方法，仅供抛砖引玉，代码如下：
+
+    var resProto = require('express/lib/response')
+    resProto.pipe = function (selector, html, replace) {
+      this.write('<script>' + '$("' + selector + '").' +
+        (replace === true ? 'replaceWith' : 'html') +
+        '("' + html.replace(/"/g, '\\"').replace(/<\/script>/g, '<\\/script>') +
+        '")</script>')
+    }
+    function PipeName (res, name) {
+      res.pipeCount = res.pipeCount || 0
+      res.pipeMap = res.pipeMap || {}
+      if (res.pipeMap[name]) return
+      res.pipeCount++
+      res.pipeMap[name] = this.id = ['pipe', Math.random().toString().substring(2), (new Date()).valueOf()].join('_')
+      this.res = res
+      this.name = name
+    }
+    resProto.pipeName = function (name) {
+      return new PipeName(this, name)
+    }
+    resProto.pipeLayout = function (view, options) {
+      var res = this
+      Object.keys(options).forEach(function (key) {
+        if (options[key] instanceof PipeName) options[key] = '<span id="' + options[key].id + '"></span>'
+      })
+      res.render(view, options, function (err, str) {
+        if (err) return res.req.next(err)
+        res.setHeader('content-type', 'text/html; charset=utf-8')
+        res.write(str)
+        if (!res.pipeCount) res.end()
+      })
+    }
+    resProto.pipePartial = function (name, view, options) {
+      var res = this
+      res.render(view, options, function (err, str) {
+        if (err) return res.req.next(err)
+        res.pipe('#'+res.pipeMap[name], str, true)
+        --res.pipeCount || res.end()
+      })
+    }
+    app.get('/', function (req, res) {
+      res.pipeLayout('layout', {
+          s1: res.pipeName('s1name')
+        , s2: res.pipeName('s2name')
+      })
+      getData.d1(function (err, s1data) {
+        res.pipePartial('s1name', 's1', s1data)
+      })
+      getData.d2(function (err, s2data) {
+        res.pipePartial('s2name', 's2', s2data)
+      })
+    })
+
+还要在 layout.jade 把两个 section 添加回来：
+
+    section#s1!=s1
+    section#s2!=s2
+
+这里的思路是，需要 pipe 的内容先用一个 span 标签占位，异步获取数据并渲染完成相应的 HTML 代码后再输出给浏览器，用 jQuery 的 replaceWith 方法把占位的 span 元素替换掉。
