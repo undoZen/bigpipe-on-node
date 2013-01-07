@@ -237,3 +237,11 @@ s2 的处理与此类似。这时你会看到，请求网页的第二秒，出�
 
 至此，我们就完成了一个最简单的 BigPipe 技术实现的网页。
 
+需要注意的是，要写入的网页片段有 script 标签的情况，如将 s1.jade 改为
+
+    h1 Partial 1
+    .content!=content
+    script
+      alert("alert from s1.jade")
+
+然后刷新网页，会发现这句 alert 没有执行，而且网页会有错误。
