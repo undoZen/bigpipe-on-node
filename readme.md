@@ -107,3 +107,31 @@ views/s2.jade:
 
 现在页面看起来是这样子：
 ![screenshot 2](https://gist.github.com/raw/c5383ff669fdbdef7e0d/9f386f6c5982240e720885e8b363d99f10c0fd06/screenshot/2.png)
+
+一般来说，两个 section 的数据是分别获取的——不管是通过查询数据库还是 RESTful 请求，我们用两个函数来模拟这样的异步操作。
+
+    var getData = {
+        d1: function (fn) {
+            setTimeout(fn, 3000, null, { content: "Hello, I'm the first section." })
+        }
+      , d2: function (fn) {
+            setTimeout(fn, 5000, null, { content: "Hello, I'm the second section." })
+        }
+    }
+
+这样一来，app.use() 里的逻辑就会比较复杂了，最简单的处理方式是：
+
+    app.use(function (req, res) {
+      getData.d1(function (err, s1data) {
+        getData.d2(function (err, s2data) {
+          res.render('layout', {
+              s1: temp.s1(s1data)
+            , s2: temp.s2(s2data)
+          })
+        })
+      })
+    })
+
+这样也可以得到我们想要的结果，但是这样的话，要足足 8 秒才会返回。
+
+![8s](https://gist.github.com/raw/c5383ff669fdbdef7e0d/f303873e7caecb711a39391c9337095ee2e0c1a7/screenshot/4.png)
