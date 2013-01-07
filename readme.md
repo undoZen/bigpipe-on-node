@@ -194,22 +194,22 @@ views/s2.jade:
 
 因此我们在 res.render() 里也不用给 { s1: …, s2: … } 这个对象，并且因为 res.render() 默认会调用 res.end()，我们需要手动设置 render 完成后的回调函数，在里面用 res.write() 方法。layout.jade 的内容也不必在 writeResult() 这个回调函数里面，我们可以在收到这个请求时就返回，注意我们手动添加了 content-type 这个 header：
 
-app.use(function (req, res) {
-  res.render('layout', function (err, str) {
-    if (err) return res.req.next(err)
-    res.setHeader('content-type', 'text/html; charset=utf-8')
-    res.write(str)
-  })
-  var n = 2
-  getData.d1(function (err, s1data) {
-    res.write('<section id="s1">' + temp.s1(s1data) + '</section>')
-    --n || res.end()
-  })
-  getData.d2(function (err, s2data) {
-    res.write('<section id="s2">' + temp.s2(s2data) + '</section>')
-    --n || res.end()
-  })
-})
+    app.use(function (req, res) {
+      res.render('layout', function (err, str) {
+        if (err) return res.req.next(err)
+        res.setHeader('content-type', 'text/html; charset=utf-8')
+        res.write(str)
+      })
+      var n = 2
+      getData.d1(function (err, s1data) {
+        res.write('<section id="s1">' + temp.s1(s1data) + '</section>')
+        --n || res.end()
+      })
+      getData.d2(function (err, s2data) {
+        res.write('<section id="s2">' + temp.s2(s2data) + '</section>')
+        --n || res.end()
+      })
+    })
 
 现在最终加载速度又回到大概 5 秒左右了。实际运行中浏览器先收到 head 部分代码，就去加载三个静态文件，这需要两秒时间，然后到第三秒，出现 Partial 1 部分，第 5 秒出现 Partial 2 部分，网页加载结束。就不给截图了，截图效果和前面 5 秒的截图一样。
 
