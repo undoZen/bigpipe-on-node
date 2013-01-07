@@ -2,22 +2,9 @@ doctype html
 
 head
   title Hello, World!
-  style
-    section {
-      margin: 20px auto;
-      border: 1px dotted gray;
-      width: 80%;
-      height: 150px;
-    }
-    section h1 {
-      font-size: 1.5;
-      padding: 10px 20px;
-      margin: 0;
-      border-bottom: 1px dotted gray;
-    }
-    section div {
-      margin: 10px;
-    }
+  link(href="/static/style.css", rel="stylesheet")
+  script(src="/static/jquery.js")
+  script(src="/static/jade.js")
 
 section#s1!=s1
 section#s2!=s2

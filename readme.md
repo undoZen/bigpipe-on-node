@@ -160,3 +160,29 @@ views/s2.jade:
 这样就只需 5 秒。
 
 ![5s](https://gist.github.com/raw/c5383ff669fdbdef7e0d/98d2b87107354f5d2e837b0c618387b5257934e9/screenshot/3.png)
+
+在接下来的优化之前，我们加入 jquery 库并把 css 样式放到外部文件，顺便，把之后我们会用到的浏览器端使用 jade 模板所需要的 runtime.js 文件也加入进来，在包含 app.js 的目录下运行：
+
+    mkdir static
+    cd static
+    curl http://code.jquery.com/jquery-1.8.3.min.js -o jquery.js
+    ln -s ../node_modules/jade/runtime.min.js jade.js
+
+并且把 layout.jade 中的 style 标签里的代码拿出来放到 static/style.css 里，然后把 head 标签改为：
+
+    head
+      title Hello, World!
+      link(href="/static/style.css", rel="stylesheet")
+      script(src="/static/jquery.js")
+      script(src="/static/jade.js")
+
+在 app.js 里，我们把它们两者的下载速度都模拟为两秒，在`app.use(function (req, res) {`之前加入：
+
+    var static = express.static(path.join(__dirname, 'static'))
+    app.use('/static', function (req, res, next) {
+      setTimeout(static, 2000, req, res, next)
+    })
+
+受外部静态文件的影响，我们的页面现在的加载时间为 7 秒左右。
+
+![7s](https://gist.github.com/raw/c5383ff669fdbdef7e0d/bb38a3a421259f9120d893ac9cc9458947af0f0b/screenshot/6.png)
