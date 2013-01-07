@@ -37,7 +37,7 @@ app.use(function (req, res) {
   })
   var n = 2
   getData.d1(function (err, s1data) {
-    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"') + '")</script>')
+    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"').replace(/<\/script>/g, '<\\/script>') + '")</script>')
     --n || res.end()
   })
   getData.d2(function (err, s2data) {

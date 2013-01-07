@@ -244,4 +244,7 @@ s2 的处理与此类似。这时你会看到，请求网页的第二秒，出�
     script
       alert("alert from s1.jade")
 
-然后刷新网页，会发现这句 alert 没有执行，而且网页会有错误。
+然后刷新网页，会发现这句 alert 没有执行，而且网页会有错误。查看源代码，知道是因为<script> 里面的字符串出现 "</script>" 而导致的错误，只要将其替换为 "<\/script>" 即可
+
+    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"').replace(/<\/script>/g, '<\\/script>') + '")</script>')
+
