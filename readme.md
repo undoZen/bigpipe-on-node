@@ -106,6 +106,7 @@ views/s2.jade:
 之前我们说“以子模版渲染完成以后的 HTML 作为父模版的数据”，指的就是这样，`temp.s1` 和 `temp.s2` 两个方法会生成 s1.jade 和 s2.jade 两个文件的 HTML 代码，然后把这两段代码作为 layout.jade 里面 s1、s2 两个变量的值。
 
 现在页面看起来是这样子：
+
 ![screenshot 2](https://raw.github.com/undozen/bigpipe-on-node/master/screenshot/2.png)
 
 一般来说，两个 section 的数据是分别获取的——不管是通过查询数据库还是 RESTful 请求，我们用两个函数来模拟这样的异步操作。
