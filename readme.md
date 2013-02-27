@@ -228,10 +228,10 @@ views/s2.jade:
 
 然后将返回的数据用 JavaScript 写入
 
-  getData.d1(function (err, s1data) {
-    res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"') + '")</script>')
-    --n || res.end()
-  })
+    getData.d1(function (err, s1data) {
+      res.write('<script>$("#s1").html("' + temp.s1(s1data).replace(/"/g, '\\"') + '")</script>')
+      --n || res.end()
+    })
 
 s2 的处理与此类似。这时你会看到，请求网页的第二秒，出现两个空白虚线框，第五秒，出现 Partial 2 部分，第八秒，出现 Partial 1 部分，网页请求完成。
 
@@ -311,4 +311,4 @@ s2 的处理与此类似。这时你会看到，请求网页的第二秒，出�
 
 本文的代码在 https://gist.github.com/c5383ff669fdbdef7e0d ，我把每一步做成一个 commit 了，希望你 clone 到本地实际运行并 hack 一下看看。因为后面几步涉及到加载顺序了，确实要自己打开浏览器才能体验到而无法从截图上看到（其实应该可以用 gif 动画实现，但是我懒得做了）。
 
-关于 BigPipe 的实践还有很大的优化空间，比如说，要 pipe 的内容最好设置一个触发的时间值，如果异步调用的数据很快返回，就不需要用 BigPipe，直接生成网页送出即可，可以等到数据请求超过一定时间才用 BigPipe。使用 BigPipe 相比 ajax 即节省了浏览器到 node.js 服务器的请求数，又节省了 node.js 服务器到数据源的请求数。具体的优化和实现方法，可能要等到雪球网用上 BigPipe 以后才能分享。顺便打个广告，雪球的技术博客最近开通了，以后雪球的 BigPipe 实践经验分享就会发表在那了，地址是 http://engineering.xueqiu.com/
+关于 BigPipe 的实践还有很大的优化空间，比如说，要 pipe 的内容最好设置一个触发的时间值，如果异步调用的数据很快返回，就不需要用 BigPipe，直接生成网页送出即可，可以等到数据请求超过一定时间才用 BigPipe。使用 BigPipe 相比 ajax 即节省了浏览器到 node.js 服务器的请求数，又节省了 node.js 服务器到数据源的请求数。具体的优化和实现方法，可能要等到雪球网用上 BigPipe 以后才能分享。
